@@ -1,116 +1,133 @@
-# Unified Action Ledger (UAL) - Complete Feature Set
+# Unified Action Ledger (UAL)
 
-A revolutionary digital system that captures, tracks, and provides visibility into every human-initiated operational action across your organization. The UAL serves as the "flight data recorder" for business operations, ensuring no action is invisible or lost in silos.
+A human-centric, tamper-evident operational action ledger providing universal capture, standardized schema, cross-linking, real-time visibility, rule-based escalations, and robust auditability — without ML/AI.
 
-## 🚀 Core Features
+## Features
 
-### 1. Universal Action Capture Engine
-- Captures every human-initiated operational action from integrated tools
-- Automatically detects actions like document edits, approvals, emails, task completions
-- Uses lightweight plugins, APIs, and agents to listen for user actions
-- Converts unstructured actions into structured data via templates
+- Universal Action Capture Engine: Standard APIs and connectors to log actions from email, ERP, docs, and project tools.
+- Standardized Action Schema: Consistent fields for user, timestamp, type, target, department, tags, and state transitions.
+- Cross-Referencing & Dependency Mapping: Link actions to form process chains; visualize dependencies.
+- Real-Time Process Dashboard: Live status via API; pluggable UI.
+- Rule-Based Escalation System: Threshold-driven alerts via email/SMS/chat (extensible channels).
+- Tamper-Evident Audit Ledger: Hash-chained, append-only entries with void markers.
+- Unified Search & Timeline Explorer: Query by person, date, keyword, project, action type; follow updates.
+- Permission & Access Control Layer: RBAC-ready with access logging.
+- Integration Gateway: Pre-built connector stubs and open API.
+- Process Blueprint Designer (No-Code): Define workflows, SLAs, gap analysis.
+- Daily Action Digest: Automated summaries for users/teams.
+- Offline & Mobile Capture: Store-and-forward with preserved timestamps.
+- Security & Compliance: E2E encryption support, immutable logs, GDPR/CCPA masking, access audit trail.
 
-### 2. Standardized Action Schema
-- Universal format for logging every action with machine-readable consistency
-- Includes: User, Timestamp, Action Type, Target Item, Department, Context Tags, Pre/Post-State
-- Enables searchability, filtering, and automated tracking across departments
+## Tech Stack
 
-### 3. Cross-Referencing & Dependency Mapping
-- Links related actions together to form process chains
-- Uses rule-based matching (reference IDs, keywords, manual linking)
-- Builds visual dependency graphs showing work flow
-- Eliminates "I was waiting on you" confusion
+- FastAPI, SQLAlchemy (async), SQLite (aiosqlite), Pydantic v2
+- JWT auth, Passlib bcrypt, JOSE
+- APScheduler for rules/digests
 
-### 4. Real-Time Process Visibility Dashboard
-- Live, interactive dashboards showing business process status
-- Visual pipeline views with color-coded status indicators
-- Drill-down capability and role-based views
-- Eliminates status meetings with shared truth
+## Quickstart
 
-### 5. Rule-Based Escalation System
-- Automatically flags delays and escalates unresolved actions
-- Customizable rules with email, SMS, or chat notifications
-- No AI learning - simple, transparent rule-based logic
-- Prevents tasks from falling through cracks
+1) Python environment
 
-### 6. Tamper-Evident Audit Ledger
-- Secure, append-only log that cannot be altered without detection
-- Cryptographically linked entries (hash chaining)
-- Full audit trail with compliance export capabilities
-- Ensures trust, compliance, and forensic traceability
+- System Python is locked; create a venv (ensure `python3-venv` is available):
 
-### 7. Unified Search & Timeline Explorer
-- Search all actions across time and systems
-- Timeline views with chronological action sequences
-- Follow feature for specific item updates
-- Replaces email/drive digging with instant retrieval
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+```
 
-### 8. Permission & Access Control Layer
-- Granular permissions and role-based visibility
-- Department-level isolation options
-- Audit-only access for compliance teams
-- Activity logging of all access attempts
+If `venv` is unavailable in your environment, install `python3-venv` or use a dev container.
 
-### 9. Integration Gateway
-- Pre-built connectors for major business systems
-- Email, ERP, project tools, document systems, HR platforms
-- Open API for custom integrations
-- Secure, authenticated data channels
+2) Initialize database
 
-### 10. Process Blueprint Designer (No-Code)
-- Drag-and-drop workflow design interface
-- Define standard processes with timelines and escalation rules
-- Gap analysis comparing actual vs. expected execution
-- Turns tribal knowledge into structure
+```bash
+. .venv/bin/activate
+python -m app.db.init_db
+```
 
-### 11. Daily Action Digest
-- Personalized daily/weekly summaries
-- Automated reporting via email or dashboard
-- Overdue items and upcoming deadline alerts
-- Keeps everyone informed without meetings
+3) Run server
 
-### 12. Offline & Mobile Capture Mode
-- Mobile app with offline action logging
-- Secure sync when connectivity returns
-- Preserved timestamps with server validation
-- Ensures no action is missed
+```bash
+. .venv/bin/activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-## 🔐 Security & Compliance Features
+4) Docs
 
-- **End-to-End Encryption**: All data encrypted in transit and at rest
-- **Immutable Logs**: Entries can't be deleted, only voided with audit trail
-- **GDPR/CCPA Ready**: Right-to-erasure via data masking
-- **Audit Trail of Access**: Complete logging of who viewed/exported data
+- Swagger UI: `http://localhost:8000/docs`
 
-## 🏢 Why UAL is Revolutionary
+## API Overview (initial)
 
-- **Human-Centric**: Focuses on people's actions, not just data
-- **Transparency by Design**: Everyone sees the same timeline
-- **Accountability Without Blame**: Clear records improve processes
-- **Scalable Simplicity**: Uses rules, not models - easy to understand and audit
+- Auth
+  - POST `/api/auth/register` → create user
+  - POST `/api/auth/token` (OAuth2 password) → JWT token
 
-## 🛠️ Implementation Requirements
+- Actions
+  - POST `/api/actions/` → create action (tamper-evident chain)
+  - POST `/api/actions/link` → link two actions (dependency graph)
+  - POST `/api/actions/{id}/void` → mark action as void (with reason)
+  - GET `/api/actions/timeline/{reference_key}` → chronological list
 
-1. Integration with existing software (via API/plugins)
-2. Initial setup of process blueprints and escalation rules
-3. Employee training on logging key actions
-4. Admin team for maintenance and access control
+- Health
+  - GET `/health`
 
-## 🚀 Getting Started
+## Standardized Action Schema
 
-1. Clone the repository
-2. Start the backend: `cd backend && npm start`
-3. Start the frontend: `cd frontend && npm start`
-4. Configure your first integration in the Admin panel
-5. Set up your process blueprints
-6. Begin capturing actions across your organization
+- user: implicit via JWT `sub` (user id)
+- timestamp: `created_at` UTC, optional `local_timestamp`
+- action_type: e.g., Approve, Edit, Request, Notify, Complete
+- target: `target_type`, `target_id`, `target_label`
+- department: `department_id`
+- context_tags: free-form JSON
+- pre_state / post_state: JSON state snapshot
+- tamper fields: `prev_hash`, `entry_hash`, `sequence`
+- lifecycle: `voided`, `void_reason`, `voided_by`, `voided_at`
 
-## 📊 Technical Architecture
+## Tamper-Evident Ledger
 
-- **Backend**: TypeScript with Encore.ts framework
-- **Frontend**: React with TypeScript, Tailwind CSS, and shadcn/ui
-- **Database**: PostgreSQL with encrypted storage
-- **Real-time**: WebSocket connections for live updates
-- **Security**: End-to-end encryption with hash-chained audit logs
+- Each action’s `entry_hash` = SHA-256 of `{prev_hash, payload}`
+- `prev_hash` is the `entry_hash` of the latest prior action
+- Append-only; voiding preserves original with metadata
 
-The UAL transforms organizational operations by making every action visible, traceable, and accountable - creating unprecedented operational clarity and efficiency.
+## Rules & Digests (Scaffold)
+
+- Models for `Rule` and `EscalationEvent` included
+- Add APScheduler jobs that scan for overdue steps and enqueue notifications
+
+## Permissions & Access Logging (Scaffold)
+
+- `Role`, `Department`, and `AccessLog` models included
+- Add route dependencies to enforce RBAC and write access logs
+
+## Integration Gateway (Scaffold)
+
+- Add connector modules to push/pull from Gmail/Outlook, SharePoint/Google Drive, Jira/Asana, ERP
+- Use webhooks or polling; normalize to ActionCreate payloads
+
+## Process Blueprints (Scaffold)
+
+- Define workflow steps and SLAs via `Blueprint` and `BlueprintStep`
+- Track execution with `ProcessInstance` and `ProcessStepInstance`
+
+## Offline & Mobile Capture
+
+- Use `is_offline_capture` + `device_id` + `local_timestamp`
+- Mobile/edge clients queue entries and sync when online
+
+## Security Notes
+
+- Change `secret_key` via environment variable
+- Use HTTPS in production; configure CORS
+- Enable DB backups and secure export channels
+
+## Roadmap
+
+- RBAC enforcement and access logging middleware
+- Search endpoints with filters and pagination
+- Rules scheduler and notification channels
+- Dashboard UI (React/Vite) and blueprint designer UI
+- Pre-built connectors and webhook adapters
+
+## License
+
+MIT
